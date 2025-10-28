@@ -1,7 +1,7 @@
 ---
-name: User Story template
-about: Template for User Story
-title: "[User Story] XX: As a [user type], I want to [goal] so that [benefit]"
+name: Plantilla para Historias de Usuario
+about: Plantilla para Historias de Usuario
+title: "[User Story] XX: Como [tipo de usuario], quiero [objetivo] para [beneficio]"
 labels: User Story
 type: 'User Story'
 assignees: ''
@@ -9,33 +9,33 @@ assignees: ''
 ---
 
 ## User Story
-**As a** [type of user]  
-**I want** [some goal/functionality]  
-**So that** [some reason/benefit]
+**Como** [tipo de usuario]  
+**Quiero** [objetivo]  
+**Para** [beneficio]
 
 ## Description
 More detailed explanation of the feature from the user's perspective.
 
 ## Acceptance Criteria 
-- [ ] Given [context], when [action], then [expected outcome]
-- [ ] Given [context], when [action], then [expected outcome]
-- [ ] Given [context], when [action], then [expected outcome]
+- [ ] Dado [contexto], cuando [acción], entonces [resultado esperado]
+- [ ] Dado [contexto], cuando [acción], entonces [resultado esperado]
+- [ ] Dado [contexto], cuando [acción], entonces [resultado esperado]
 
 ## User Scenarios
 ### Scenario 1: [Happy Path]
-- User does X
-- System responds with Y
-- User achieves Z
+- Usuario hace X
+- Sistema responde Y
+- Usuario logra Z
 
 ### Scenario 2: [Edge Case]
-- User does A
-- System handles B
-- User sees C
+- Usuario hace A
+- Sistema maneja B
+- Usuario mira C
 
 ## Definition of Done
-- [ ] All acceptance criteria met
-- [ ] Feature revised by PO
-- [ ] Documentation updated
-- [ ] Deployed to production
+- [ ] Criterios de aceptación cumplidos
+- [ ] Función revisada por PO
+- [ ] Documentación actualizada
+- [ ] Lista en producción
 
 ## Notes
