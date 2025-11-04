@@ -11,7 +11,8 @@ class Reporte {
   List<String> tags;
   DateTime fecha;
   TipoObjeto tipo;
-  Usuario usuario;
+  Usuario? usuario;
+  String? imagenPath;
 
   Reporte({
     required this.id,
@@ -20,7 +21,8 @@ class Reporte {
     required this.tags,
     required this.fecha,
     required this.tipo,
-    required this.usuario
+    required this.usuario,
+    this.imagenPath
   });
 
   Map<String, dynamic> toJson() => {
@@ -29,7 +31,7 @@ class Reporte {
     'ubicacion': ubicacion,
     'fecha': fecha.toIso8601String(),
     'tipo': tipo.name,
-    'usuario': usuario.toJson(),
+    'usuario': usuario!.toJson(),
     'tags': tags,
   };
 
