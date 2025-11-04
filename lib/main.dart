@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:objetos_perdidos/formulario_objeto_encontrado.dart';
 import 'formulario_objeto_perdido.dart';
 
 void main() {
@@ -28,17 +29,36 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Objetos Perdidos UdeC')),
       body: Center(
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.add),
-          label: const Text('Reportar objeto perdido'),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const FormularioObjetoPerdido(),
-              ),
-            );
-          },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Reportar objeto perdido'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FormularioObjetoPerdido(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Reportar objeto encontrado'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FormularioObjetoEncontrado(),
+                  ),
+                );
+              },
+            )
+          ],
         ),
       ),
     );
