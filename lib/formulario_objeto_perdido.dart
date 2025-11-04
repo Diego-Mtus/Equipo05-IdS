@@ -65,6 +65,13 @@ class _FormularioObjetoPerdidoState extends State<FormularioObjetoPerdido> {
       return;
     }
 
+    if (_fechaSeleccionada == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Debe seleccionar una fecha aproximada")),
+    );
+    return;
+  }
+
     // Se crea un reporte parcial, sin usuario todavia
     final reporteParcial = Reporte(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
