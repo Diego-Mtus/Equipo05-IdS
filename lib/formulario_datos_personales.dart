@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:objetos_perdidos/detalle_reporte.dart';
 import 'package:objetos_perdidos/reporte.dart';
 import 'package:objetos_perdidos/usuario.dart';
 
@@ -47,9 +48,15 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
       const SnackBar(content: Text('Reporte realizado exitosamente')),
     );
 
-    Navigator.of(
-      context,
-    ).popUntil((route) => route.isFirst); // Regresa a pantalla principal
+     if (context.mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              DetalleReporteScreen(reporte: reporteCompleto),
+        ),
+      );
+    }
   }
 
   @override
