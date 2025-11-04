@@ -1,0 +1,1 @@
+enum TipoObjeto { perdido, encontrado }
