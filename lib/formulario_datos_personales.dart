@@ -48,6 +48,10 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
       const SnackBar(content: Text('Reporte realizado exitosamente')),
     );
 
+    final reportes = await obtenerReportesLocales();
+
+    for (Reporte r in reportes) print(r.descripcion);
+
      if (context.mounted) {
       Navigator.pushReplacement(
         context,
