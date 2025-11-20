@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:objetos_perdidos/detalle_reporte.dart';
+import 'package:objetos_perdidos/input_validator.dart';
 import 'package:objetos_perdidos/reporte.dart';
 import 'package:objetos_perdidos/usuario.dart';
 
@@ -52,12 +53,11 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
 
     for (Reporte r in reportes) print(r.descripcion);
 
-     if (context.mounted) {
+    if (context.mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              DetalleReporteScreen(reporte: reporteCompleto),
+          builder: (context) => DetalleReporteScreen(reporte: reporteCompleto),
         ),
       );
     }
@@ -73,40 +73,49 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
           key: _formKey,
           child: ListView(
             children: [
+              // CAMPO NOMBRE
               TextFormField(
                 controller: _nombreController,
                 decoration: const InputDecoration(
                   labelText: 'Nombre completo',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
                 ),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Ingrese su nombre' : null,
+
+                validator: InputValidator.validateName,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
+
               const SizedBox(height: 16),
+
+              // CAMPO CORREO
               TextFormField(
                 controller: _correoController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Correo institucional',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
                 ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Ingrese su correo';
-                  if (!v.endsWith('@udec.cl')) return 'Debe usar correo UdeC';
-                  return null;
-                },
+                validator: InputValidator.validateUdecEmail,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
+
               const SizedBox(height: 16),
+
+              // CAMPO MATRÍCULA
               TextFormField(
                 controller: _matriculaController,
+                keyboardType: TextInputType.number,
+                maxLength: 10,
                 decoration: const InputDecoration(
                   labelText: 'Número de matrícula',
                   border: OutlineInputBorder(),
+                  counterText: "",
+                  prefixIcon: Icon(Icons.badge),
                 ),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Ingrese su número de matrícula';
-                  if (v.length != 10) return 'Ingrese su número de matrícula correctamente';
-                  return null;
-                },
+                validator: InputValidator.validateMatricula,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
