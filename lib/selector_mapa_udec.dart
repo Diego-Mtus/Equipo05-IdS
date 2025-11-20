@@ -21,15 +21,14 @@ class _SelectorMapaUdecState extends State<SelectorMapaUdec> {
   final MapController _mapController = MapController();
 
   LatLng? _posicionActual;
+  bool _mostrarInfo = true;
 
   @override
   void initState() {
     super.initState();
-
     _posicionActual = widget.ubicacionInicial ?? _centroUdec;
   }
 
-  // 3. Función para actualizar la posición solo cuando el mapa se detiene
   void _actualizarPosicionPin(MapEvent mapEvent) {
     if (mapEvent is MapEventMoveEnd) {
       setState(() {
@@ -41,55 +40,143 @@ class _SelectorMapaUdecState extends State<SelectorMapaUdec> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Mueve el mapa para ubicar el pin")),
+      appBar: AppBar(
+        title: const Text(
+          "Selecciona la ubicación",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        elevation: 0,
+      ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _posicionActual!,
-              initialZoom: 16.0,
-              minZoom: 15.0,
-              interactiveFlags: InteractiveFlag.all,
-              cameraConstraint: CameraConstraint.contain(bounds: _limitesUdec),
-
-              onMapEvent: _actualizarPosicionPin,
+          // ====== MAPA ======
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.udec.objetos_perdidos',
+            child: FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: _posicionActual!,
+                initialZoom: 16.0,
+                minZoom: 15.0,
+                maxZoom: 20,
+                cameraConstraint: CameraConstraint.contain(
+                  bounds: _limitesUdec,
+                ),
+                interactiveFlags: InteractiveFlag.all,
+                onMapEvent: _actualizarPosicionPin,
               ),
-            ],
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.udec.objetos_perdidos',
+                ),
+              ],
+            ),
           ),
 
+          // ====== PIN CENTRADO ======
           Center(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Icon(Icons.location_on, color: Colors.red[700], size: 45),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: Colors.red[700],
+                  size: 48,
+                ),
+                const SizedBox(height: 5),
+                Container(
+                  height: 6,
+                  width: 6,
+                  decoration: BoxDecoration(
+                    color: Colors.red[700],
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
             ),
           ),
 
-          if (_posicionActual != null)
-            Positioned(
-              bottom: 30,
-              left: 20,
-              right: 20,
-              child: ElevatedButton(
+          // ====== CARD DE INFORMACIÓN======
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: AnimatedOpacity(
+              opacity: _mostrarInfo ? 1 : 0,
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeOut,
+              child: _mostrarInfo
+                  ? GestureDetector(
+                      onTap: () {
+                        setState(() => _mostrarInfo = false);
+                      },
+                      child: Card(
+                        elevation: 6,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline,
+                                color: Colors.blueAccent,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "Mueve el mapa para ubicar el pin.\n"
+                                  "Solo se permiten posiciones dentro del campus UdeC.",
+                                  style: TextStyle(
+                                    color: Colors.grey[800],
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
+
+          // ====== BOTÓN CONFIRMAR ======
+          Positioned(
+            bottom: 30,
+            left: 20,
+            right: 20,
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 5,
                 ),
-                onPressed: () {
-                  // Devolvemos la posición central del mapa
-                  Navigator.of(context).pop(_posicionActual);
-                },
-                child: const Text(
-                  "Confirmar Ubicación",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                onPressed: () => Navigator.of(context).pop(_posicionActual),
+                icon: const Icon(
+                  Icons.check_circle_outline,
+                  size: 22,
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  "Confirmar ubicación",
+                  style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
             ),
+          ),
         ],
       ),
     );

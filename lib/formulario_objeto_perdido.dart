@@ -1,9 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:latlong2/latlong.dart'; // Asegúrate de tener este import
+import 'package:latlong2/latlong.dart';
 import 'package:objetos_perdidos/enum_tipo_objeto.dart';
 import 'package:objetos_perdidos/formulario_datos_personales.dart';
 import 'package:objetos_perdidos/reporte.dart';
@@ -27,8 +26,8 @@ class _FormularioObjetoPerdidoState
   DateTime? _fechaSeleccionada;
   File? _imagen;
   LatLng? _coordenadasGuardadas;
-  
-  bool _errorUbicacion = false; 
+
+  bool _errorUbicacion = false;
 
   // Fecha
   Future<void> _seleccionarFecha(BuildContext context) async {
@@ -39,14 +38,19 @@ class _FormularioObjetoPerdidoState
       lastDate: hoy,
       initialDate: hoy,
     );
-    if (seleccionada != null) setState(() => _fechaSeleccionada = seleccionada);
+    if (seleccionada != null) {
+      setState(() => _fechaSeleccionada = seleccionada);
+    }
   }
 
   // Imagen
   Future<void> _seleccionarImagen() async {
     final picker = ImagePicker();
     final seleccion = await picker.pickImage(source: ImageSource.gallery);
-    if (seleccion != null) setState(() => _imagen = File(seleccion.path));
+
+    if (seleccion != null) {
+      setState(() => _imagen = File(seleccion.path));
+    }
   }
 
   // Tags
@@ -60,13 +64,18 @@ class _FormularioObjetoPerdidoState
     }
   }
 
+  void _removerTag(String tag) {
+    setState(() => _tags.remove(tag));
+  }
+
+  // Ubicación con mapa
   Future<void> _seleccionarUbicacionMapa() async {
     try {
-      final LatLng? resultado = await Navigator.of(context).push<LatLng?>(
+      final LatLng? resultado = await Navigator.push<LatLng?>(
+        context,
         MaterialPageRoute(
-          builder: (context) => SelectorMapaUdec(
-            ubicacionInicial: _coordenadasGuardadas,
-          ),
+          builder: (context) =>
+              SelectorMapaUdec(ubicacionInicial: _coordenadasGuardadas),
         ),
       );
 
@@ -83,144 +92,126 @@ class _FormularioObjetoPerdidoState
     }
   }
 
-  void _removerTag(String tag) => setState(() => _tags.remove(tag));
-
   Future<void> _enviarFormulario() async {
-
     bool formValido = _formKey.currentState!.validate();
 
-
-    setState(() {
-      _errorUbicacion = _coordenadasGuardadas == null;
-    });
-
+    setState(() => _errorUbicacion = _coordenadasGuardadas == null);
 
     if (!formValido || _errorUbicacion) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Complete los campos obligatorios")),
+        const SnackBar(
+          content: Text("Complete los campos obligatorios"),
+        ),
       );
       return;
     }
 
     if (_fechaSeleccionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Debe seleccionar una fecha aproximada")),
+        const SnackBar(
+          content: Text("Debe seleccionar una fecha aproximada"),
+        ),
       );
       return;
     }
 
-    final textoUbicacion = "Lat: ${_coordenadasGuardadas!.latitude.toStringAsFixed(5)}, Lng: ${_coordenadasGuardadas!.longitude.toStringAsFixed(5)}";
+    final ubicacionString =
+        "Lat: ${_coordenadasGuardadas!.latitude.toStringAsFixed(5)}, Lng: ${_coordenadasGuardadas!.longitude.toStringAsFixed(5)}";
 
     final reporteParcial = Reporte(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       descripcion: _descripcionController.text.trim(),
-      ubicacion: textoUbicacion, 
+      ubicacion: ubicacionString,
       tags: _tags,
-      fecha: _fechaSeleccionada ?? DateTime.now(),
-      tipo: TipoObjeto.encontrado,
+      fecha: _fechaSeleccionada!,
+      tipo: TipoObjeto.perdido,
       usuario: null,
       imagenPath: _imagen?.path,
       coordenadas: _coordenadasGuardadas,
     );
 
-    Navigator.of(context).push(
+    Navigator.push(
+      context,
       MaterialPageRoute(
-        builder: (context) =>
-            FormularioDatosPersonales(reportePrevio: reporteParcial),
+        builder: (_) => FormularioDatosPersonales(
+          reportePrevio: reporteParcial,
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Color del borde dependiendo si hay error o no
-    final colorBorde = _errorUbicacion ? Colors.red : Colors.grey;
+    final theme = Theme.of(context);
+
+    final bordeUbicacion = Border.all(
+      color: _errorUbicacion ? Colors.red : theme.colorScheme.primary,
+      width: 1.4,
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reporte de objeto perdido')),
+      appBar: AppBar(
+        title: const Text("Objeto perdido"),
+        centerTitle: true,
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              // Descripción
-              TextFormField(
-                controller: _descripcionController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Descripción del objeto',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description_outlined),
+              // --- DESCRIPCIÓN ---
+              _CardSeccion(
+                titulo: "Descripción",
+                icono: Icons.description_outlined,
+                child: TextFormField(
+                  controller: _descripcionController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: "Describe el objeto",
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? "Este campo es obligatorio" : null,
                 ),
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Ingrese una descripción' : null,
               ),
+
               const SizedBox(height: 20),
 
-
-              const Text(
-                "Ubicación de la perdida",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              
-              Material(
-                color: Colors.white,
-                elevation: 2, 
-                borderRadius: BorderRadius.circular(12),
+              // --- UBICACIÓN ---
+              _CardSeccion(
+                titulo: "Ubicación de la perdida",
+                icono: Icons.location_on_outlined,
                 child: InkWell(
-                  onTap: _seleccionarUbicacionMapa,
                   borderRadius: BorderRadius.circular(12),
+                  onTap: _seleccionarUbicacionMapa,
                   child: Container(
-                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
+                      border: bordeUbicacion,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: colorBorde, width: 1.5),
                     ),
+                    padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: _coordenadasGuardadas != null 
-                                ? Colors.green.withOpacity(0.1) 
-                                : Colors.blue.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _coordenadasGuardadas != null ? Icons.location_on : Icons.map,
-                            color: _coordenadasGuardadas != null ? Colors.green : Colors.blue,
-                            size: 28,
-                          ),
+                        Icon(
+                          _coordenadasGuardadas != null
+                              ? Icons.check_circle
+                              : Icons.map,
+                          color: _coordenadasGuardadas != null
+                              ? Colors.green
+                              : theme.colorScheme.primary,
+                          size: 30,
                         ),
                         const SizedBox(width: 16),
-                        // Texto descriptivo
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _coordenadasGuardadas != null 
-                                  ? "Ubicación seleccionada" 
-                                  : "Toca para ubicar en el mapa",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: _coordenadasGuardadas != null ? Colors.black87 : Colors.grey[600],
-                                ),
-                              ),
-                              if (_coordenadasGuardadas != null)
-                                Text(
-                                  "Lat: ${_coordenadasGuardadas!.latitude.toStringAsFixed(4)}...",
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                            ],
+                          child: Text(
+                            _coordenadasGuardadas != null
+                                ? "Ubicación seleccionada\nLat: ${_coordenadasGuardadas!.latitude.toStringAsFixed(4)}, Lng: ${_coordenadasGuardadas!.longitude.toStringAsFixed(4)}"
+                                : "Toca para seleccionar en el mapa",
+                            style: const TextStyle(fontSize: 15),
                           ),
                         ),
-
-                        Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                       ],
                     ),
                   ),
@@ -229,90 +220,182 @@ class _FormularioObjetoPerdidoState
 
               if (_errorUbicacion)
                 Padding(
-                  padding: const EdgeInsets.only(left: 12, top: 5),
+                  padding: const EdgeInsets.only(top: 4, left: 6),
                   child: Text(
-                    "Debe seleccionar una ubicación en el mapa",
-                    style: TextStyle(color: Colors.red[700], fontSize: 12),
+                    "Debe seleccionar una ubicación",
+                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
                   ),
                 ),
 
               const SizedBox(height: 20),
-              
-              // Fecha
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today),
-                title: Text(
-                  _fechaSeleccionada == null
-                      ? 'Seleccionar fecha aproximada'
-                      : 'Fecha: ${_fechaSeleccionada!.day}/${_fechaSeleccionada!.month}/${_fechaSeleccionada!.year}',
-                  style: TextStyle(
-                      color: _fechaSeleccionada == null ? Colors.grey[600] : Colors.black
-                  ),
-                ),
-                onTap: () => _seleccionarFecha(context),
-              ),
-              const Divider(),
 
-              const SizedBox(height: 10),
-              // Tags
-              TextField(
-                controller: _tagsController,
-                decoration: InputDecoration(
-                  labelText: 'Etiquetas (Ej: llaves, azul)',
-                  hintText: 'Escribe y presiona +',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: _agregarTag,
-                    icon: const Icon(Icons.add_circle, color: Colors.blue),
-                  ),
-                ),
-                onSubmitted: (_) => _agregarTag(),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: _tags
-                    .map((tag) => Chip(
-                          label: Text(tag),
-                          deleteIcon: const Icon(Icons.close, size: 18),
-                          onDeleted: () => _removerTag(tag),
-                          backgroundColor: Colors.blue.shade50,
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 16),
-              
-              // Imagen
-              _imagen == null
-                  ? const SizedBox.shrink()
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: kIsWeb
-                          ? Image.network(_imagen!.path, height: 150, width: double.infinity, fit: BoxFit.cover)
-                          : Image.file(_imagen!, height: 150, width: double.infinity, fit: BoxFit.cover),
+              // --- FECHA ---
+              _CardSeccion(
+                titulo: "Fecha aproximada",
+                icono: Icons.calendar_month,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  leading: const Icon(Icons.calendar_today),
+                  title: Text(
+                    _fechaSeleccionada == null
+                        ? "Seleccionar fecha"
+                        : "${_fechaSeleccionada!.day}/${_fechaSeleccionada!.month}/${_fechaSeleccionada!.year}",
+                    style: TextStyle(
+                      color: _fechaSeleccionada == null
+                          ? Colors.grey[600]
+                          : Colors.black,
                     ),
-              TextButton.icon(
-                onPressed: _seleccionarImagen,
-                icon: Icon(_imagen == null ? Icons.camera_alt : Icons.refresh),
-                label: Text(_imagen == null ? 'Adjuntar foto (Opcional)' : 'Cambiar foto'),
+                  ),
+                  onTap: () => _seleccionarFecha(context),
+                ),
               ),
-              
+
+              const SizedBox(height: 20),
+
+              // --- TAGS ---
+              _CardSeccion(
+                titulo: "Etiquetas",
+                icono: Icons.sell_outlined,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _tagsController,
+                      decoration: InputDecoration(
+                        labelText: "Agregar etiqueta",
+                        suffixIcon: IconButton(
+                          onPressed: _agregarTag,
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                        border: const OutlineInputBorder(),
+                      ),
+                      onSubmitted: (_) => _agregarTag(),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      children: _tags
+                          .map((t) => Chip(
+                                label: Text(t),
+                                onDeleted: () => _removerTag(t),
+                                deleteIcon: const Icon(Icons.close, size: 18),
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // --- IMAGEN ---
+              _CardSeccion(
+                titulo: "Fotografía (opcional)",
+                icono: Icons.camera_alt_outlined,
+                child: Column(
+                  children: [
+                    if (_imagen != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: kIsWeb
+                            ? Image.network(
+                                _imagen!.path,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                _imagen!,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    TextButton.icon(
+                      onPressed: _seleccionarImagen,
+                      icon: Icon(_imagen == null
+                          ? Icons.photo_camera
+                          : Icons.refresh),
+                      label: Text(
+                        _imagen == null
+                            ? "Adjuntar foto"
+                            : "Cambiar foto",
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 30),
+
+              // --- BOTÓN SIGUIENTE ---
               SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                height: 55,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: _enviarFormulario,
-                  child: const Text("Siguiente Paso", style: TextStyle(fontSize: 18)),
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text(
+                    "Siguiente paso",
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Widget para las secciones
+class _CardSeccion extends StatelessWidget {
+  final String titulo;
+  final IconData icono;
+  final Widget child;
+
+  const _CardSeccion({
+    required this.titulo,
+    required this.icono,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icono, color: theme.colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  titulo,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            child,
+          ],
         ),
       ),
     );

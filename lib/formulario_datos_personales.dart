@@ -66,62 +66,125 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Datos personales')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(
+        title: const Text(
+          'Datos personales',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // CAMPO NOMBRE
+              const Text(
+                "Información del usuario",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 12),
+
+              // ===== NOMBRE =====
+              Text(
+                "Nombre completo *",
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: _nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre completo',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+                decoration: InputDecoration(
+                  hintText: "Ej: Juan Pérez",
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.person),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-
-                validator: InputValidator.validateName,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: InputValidator.validateName,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // CAMPO CORREO
+              // ===== CORREO =====
+              Text(
+                "Correo institucional *",
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: _correoController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Correo institucional',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+                decoration: InputDecoration(
+                  hintText: "usuario@udec.cl",
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  prefixIcon: const Icon(Icons.email),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                validator: InputValidator.validateUdecEmail,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: InputValidator.validateUdecEmail,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // CAMPO MATRÍCULA
+              // ===== MATRÍCULA =====
+              Text(
+                "Número de matrícula *",
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
               TextFormField(
                 controller: _matriculaController,
                 keyboardType: TextInputType.number,
                 maxLength: 10,
-                decoration: const InputDecoration(
-                  labelText: 'Número de matrícula',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: "Ej: 2023123456",
+                  filled: true,
+                  fillColor: Colors.grey[100],
                   counterText: "",
-                  prefixIcon: Icon(Icons.badge),
+                  prefixIcon: const Icon(Icons.badge),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                validator: InputValidator.validateMatricula,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: InputValidator.validateMatricula,
               ),
-              const SizedBox(height: 20),
-              ElevatedButton.icon(
-                onPressed: _finalizarReporte,
-                icon: const Icon(Icons.save),
-                label: const Text('Finalizar reporte'),
+
+              const SizedBox(height: 30),
+
+              // ===== BOTÓN FINALIZAR =====
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: _finalizarReporte,
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text(
+                    'Finalizar reporte',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
               ),
             ],
           ),
