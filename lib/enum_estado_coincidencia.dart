@@ -1,0 +1,1 @@
+enum EstadoCoincidencia { PENDIENTE, CONFIRMADA_POR_ADMIN, RESUELTA }
