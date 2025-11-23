@@ -3,6 +3,7 @@ import 'package:objetos_perdidos/detalle_reporte.dart';
 import 'package:objetos_perdidos/input_validator.dart';
 import 'package:objetos_perdidos/reporte.dart';
 import 'package:objetos_perdidos/usuario.dart';
+import 'algoritmo_service.dart';
 
 class FormularioDatosPersonales extends StatefulWidget {
   final Reporte reportePrevio;
@@ -52,6 +53,8 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
     final reportes = await obtenerReportesLocales();
 
     for (Reporte r in reportes) print(r.descripcion);
+
+    await CoincidenciaService.detectarCoincidenciasParaNuevoReporte(reporteCompleto);
 
     if (context.mounted) {
       Navigator.pushReplacement(

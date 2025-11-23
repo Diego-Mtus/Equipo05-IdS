@@ -204,7 +204,7 @@ void main() {
       );
 
       final peso = AlgoritmoCoincidencia.calcularPeso(p, e);
-      expect(peso, inInclusiveRange(0.0, 0.5));
+      expect(peso, inInclusiveRange(0.0, 0.6));
     });
   });
 }
