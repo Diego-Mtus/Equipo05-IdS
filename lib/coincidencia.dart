@@ -39,30 +39,30 @@ class Coincidencia {
       ),
     );
   }
+}
 
-  Future<void> _guardarCoincidenciasLocal(List<Coincidencia> lista) async {
-    final local = await SharedPreferences.getInstance();
-    final jsonList = lista.map((c) => c.toJson()).toList();
-    await local.setString('coincidencias', jsonEncode(jsonList));
-  }
+Future<void> _guardarCoincidenciasLocal(List<Coincidencia> lista) async {
+  final local = await SharedPreferences.getInstance();
+  final jsonList = lista.map((c) => c.toJson()).toList();
+  await local.setString('coincidencias', jsonEncode(jsonList));
+}
 
-  Future<List<Coincidencia>> obtenerCoincidenciasLocales() async {
-    final local = await SharedPreferences.getInstance();
-    final jsonString = local.getString('coincidencias');
-    if (jsonString == null) return [];
+Future<List<Coincidencia>> obtenerCoincidenciasLocales() async {
+  final local = await SharedPreferences.getInstance();
+  final jsonString = local.getString('coincidencias');
+  if (jsonString == null) return [];
 
-    final List<dynamic> listaJson = jsonDecode(jsonString);
-    return listaJson.map((json) => Coincidencia.fromJson(json)).toList();
-  }
+  final List<dynamic> listaJson = jsonDecode(jsonString);
+  return listaJson.map((json) => Coincidencia.fromJson(json)).toList();
+}
 
-  Future<void> agregarCoincidenciaLocal(Coincidencia nueva) async {
-    final coincidencias = await obtenerCoincidenciasLocales();
-    coincidencias.add(nueva);
-    await _guardarCoincidenciasLocal(coincidencias);
-  }
+Future<void> agregarCoincidenciaLocal(Coincidencia nueva) async {
+  final coincidencias = await obtenerCoincidenciasLocales();
+  coincidencias.add(nueva);
+  await _guardarCoincidenciasLocal(coincidencias);
+}
 
-  Future<void> eliminarTodasLasCoincidencias() async {
-    final local = await SharedPreferences.getInstance();
-    await local.remove('coincidencias');
-  }
+Future<void> eliminarTodasLasCoincidencias() async {
+  final local = await SharedPreferences.getInstance();
+  await local.remove('coincidencias');
 }

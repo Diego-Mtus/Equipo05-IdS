@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-// 1. Importamos latlong2
 import 'package:latlong2/latlong.dart'; 
 import 'package:objetos_perdidos/enum_tipo_objeto.dart';
 import 'package:objetos_perdidos/usuario.dart';
@@ -9,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Reporte {
   String id;
   String descripcion;
-  String ubicacion; // Texto legible (ej: "Foro UdeC")
+  String ubicacion;
   List<String> tags;
   DateTime fecha;
   TipoObjeto tipo;
