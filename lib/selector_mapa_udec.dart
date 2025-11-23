@@ -14,8 +14,8 @@ class SelectorMapaUdec extends StatefulWidget {
 class _SelectorMapaUdecState extends State<SelectorMapaUdec> {
   final LatLng _centroUdec = const LatLng(-36.8296, -73.0360);
   final LatLngBounds _limitesUdec = LatLngBounds(
-    const LatLng(-36.8360, -73.0420),
-    const LatLng(-36.8200, -73.0280),
+    const LatLng(-36.8360, -73.0402),
+    const LatLng(-36.8247, -73.0310),
   );
 
   final MapController _mapController = MapController();
@@ -63,7 +63,7 @@ class _SelectorMapaUdecState extends State<SelectorMapaUdec> {
                 initialZoom: 16.0,
                 minZoom: 15.0,
                 maxZoom: 20,
-                cameraConstraint: CameraConstraint.contain(
+                cameraConstraint: CameraConstraint.containCenter(
                   bounds: _limitesUdec,
                 ),
                 interactiveFlags: InteractiveFlag.all,
