@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:objetos_perdidos/enum_tipo_objeto.dart';
 import 'package:objetos_perdidos/formulario_datos_personales.dart';
 import 'package:objetos_perdidos/reporte.dart';
+import 'package:objetos_perdidos/image_store.dart';
 import 'package:objetos_perdidos/selector_mapa_udec.dart';
 
 class FormularioObjetoEncontrado extends StatefulWidget {
@@ -24,7 +25,7 @@ class _FormularioObjetoEncontradoState
 
   List<String> _tags = [];
   DateTime? _fechaSeleccionada;
-  File? _imagen;
+  Uint8List? _imagenBytes;
   LatLng? _coordenadasGuardadas;
 
   bool _errorUbicacion = false;
@@ -49,7 +50,8 @@ class _FormularioObjetoEncontradoState
     final seleccion = await picker.pickImage(source: ImageSource.gallery);
 
     if (seleccion != null) {
-      setState(() => _imagen = File(seleccion.path));
+      final bytes = await seleccion.readAsBytes();
+      setState(() => _imagenBytes = bytes);
     }
   }
 
@@ -126,9 +128,15 @@ class _FormularioObjetoEncontradoState
       fecha: _fechaSeleccionada!,
       tipo: TipoObjeto.encontrado,
       usuario: null,
-      imagenPath: _imagen?.path,
+      imagenPath: _imagenBytes != null ? 'hive:${DateTime.now().millisecondsSinceEpoch.toString()}' : null,
       coordenadas: _coordenadasGuardadas,
     );
+
+    if (_imagenBytes != null) {
+      final id = reporteParcial.id;
+      await ImageStore.saveReportImage(id, _imagenBytes!);
+      reporteParcial.imagenPath = 'hive:$id';
+    }
 
     Navigator.push(
       context,
@@ -294,33 +302,20 @@ class _FormularioObjetoEncontradoState
                 icono: Icons.camera_alt_outlined,
                 child: Column(
                   children: [
-                    if (_imagen != null)
+                    if (_imagenBytes != null)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: kIsWeb
-                            ? Image.network(
-                                _imagen!.path,
-                                height: 160,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.file(
-                                _imagen!,
-                                height: 160,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                        child: Image.memory(
+                          _imagenBytes!,
+                          height: 160,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     TextButton.icon(
                       onPressed: _seleccionarImagen,
-                      icon: Icon(_imagen == null
-                          ? Icons.photo_camera
-                          : Icons.refresh),
-                      label: Text(
-                        _imagen == null
-                            ? "Adjuntar foto"
-                            : "Cambiar foto",
-                      ),
+                      icon: Icon(_imagenBytes == null ? Icons.photo_camera : Icons.refresh),
+                      label: Text(_imagenBytes == null ? "Adjuntar foto" : "Cambiar foto"),
                     ),
                   ],
                 ),

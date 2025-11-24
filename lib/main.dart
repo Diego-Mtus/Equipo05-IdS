@@ -3,8 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:objetos_perdidos/formulario_objeto_encontrado.dart';
 import 'package:objetos_perdidos/formulario_objeto_perdido.dart';
 import 'package:objetos_perdidos/menu_reportes.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:typed_data';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  // Caja para almacenar imágenes como bytes (Uint8List)
+  await Hive.openBox<Uint8List>('report_images');
   runApp(const MyApp());
 }
 

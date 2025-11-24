@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:objetos_perdidos/enum_tipo_objeto.dart';
 import 'package:objetos_perdidos/usuario.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:objetos_perdidos/image_store.dart';
 
 class Reporte {
   String id;
@@ -96,6 +97,34 @@ Future<void> agregarReporteLocal(Reporte nuevoReporte) async {
 }
 
 Future<void> eliminarTodosLosReportes() async {
+
+  final reportes = await obtenerReportesLocales();
+  for (final r in reportes) {
+    if (r.imagenPath != null && r.imagenPath!.startsWith('hive:')) {
+      final id = r.imagenPath!.substring(5);
+      try {
+        await ImageStore.deleteReportImage(id);
+      } catch (_) {}
+    }
+  }
+
   final local = await SharedPreferences.getInstance();
   await local.remove('reportes');
+}
+
+
+Future<void> eliminarReporteLocal(String reportId) async {
+  final reportes = await obtenerReportesLocales();
+  final index = reportes.indexWhere((r) => r.id == reportId);
+  if (index == -1) return;
+
+  final removed = reportes.removeAt(index);
+  await _guardarListaLocal(reportes);
+
+  if (removed.imagenPath != null && removed.imagenPath!.startsWith('hive:')) {
+    final id = removed.imagenPath!.substring(5);
+    try {
+      await ImageStore.deleteReportImage(id);
+    } catch (_) {}
+  }
 }

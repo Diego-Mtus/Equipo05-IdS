@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:objetos_perdidos/reporte.dart';
+import 'package:objetos_perdidos/image_store.dart';
+import 'dart:typed_data';
 
 class DetalleReporteScreen extends StatelessWidget {
   final Reporte reporte;
@@ -24,29 +26,66 @@ class DetalleReporteScreen extends StatelessWidget {
             // ====== Imagen ======
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: reporte.imagenPath != null
-                  ? (kIsWeb
-                        ? Image.network(
-                            reporte.imagenPath!,
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            File(reporte.imagenPath!),
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ))
-                  : Container(
-                      height: 200,
-                      color: Colors.grey[300],
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Sin imagen adjunta',
-                        style: TextStyle(color: Colors.black54),
-                      ),
+              child: GestureDetector(
+                onTap: () {
+                  if (reporte.imagenPath == null) return;
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          FullscreenImageScreen(imagePath: reporte.imagenPath!),
                     ),
+                  );
+                },
+                child: (() {
+                  if (reporte.imagenPath == null) return Container(
+                    height: 200,
+                    color: Colors.grey[300],
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Sin imagen adjunta',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  );
+
+                  // Hive stored image
+                  if (reporte.imagenPath!.startsWith('hive:')) {
+                    final id = reporte.imagenPath!.substring(5);
+                    final Uint8List? bytes = ImageStore.loadReportImageSync(id);
+                    if (bytes != null) {
+                      return Image.memory(
+                        bytes,
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      );
+                    } else {
+                      return Container(
+                        height: 200,
+                        color: Colors.grey[300],
+                        alignment: Alignment.center,
+                        child: const Text('Imagen no disponible'),
+                      );
+                    }
+                  }
+
+                  // Legacy: local file or network
+                  return kIsWeb
+                      ? Image.network(
+                          reporte.imagenPath!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.file(
+                          File(reporte.imagenPath!),
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        );
+                })(),
+              ),
             ),
 
             const SizedBox(height: 25),
@@ -192,6 +231,45 @@ class DetalleReporteScreen extends StatelessWidget {
           style: const TextStyle(fontSize: 15, color: Colors.black87),
         ),
       ],
+    );
+  }
+}
+
+class FullscreenImageScreen extends StatelessWidget {
+  final String imagePath;
+
+  const FullscreenImageScreen({super.key, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget imageWidget;
+    if (imagePath.startsWith('hive:')) {
+      final id = imagePath.substring(5);
+      final bytes = ImageStore.loadReportImageSync(id);
+      if (bytes != null) {
+        imageWidget = Image.memory(bytes, fit: BoxFit.contain);
+      } else {
+        imageWidget = const SizedBox.shrink();
+      }
+    } else {
+      imageWidget = kIsWeb
+          ? Image.network(imagePath, fit: BoxFit.contain)
+          : Image.file(File(imagePath), fit: BoxFit.contain);
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          maxScale: 5,
+          minScale: 0.5,
+          child: imageWidget,
+        ),
+      ),
     );
   }
 }

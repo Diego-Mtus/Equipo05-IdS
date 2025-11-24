@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:objetos_perdidos/reporte.dart';
+import 'package:objetos_perdidos/image_store.dart';
 import 'package:objetos_perdidos/enum_tipo_objeto.dart';
 import 'package:objetos_perdidos/detalle_reporte.dart';
 import 'package:objetos_perdidos/coincidencia.dart';
@@ -67,6 +68,10 @@ class _ReportesWidgetState extends State<ReportesWidget>
     // Evitar el uso de APIs relacionadas con archivos en web
     final bool hasImage = (() {
       if (r.imagenPath == null || r.imagenPath!.isEmpty) return false;
+      if (r.imagenPath!.startsWith('hive:')) {
+        final id = r.imagenPath!.substring(5);
+        return ImageStore.hasImageSync(id);
+      }
       if (kIsWeb) {
         return true;
       } else {
@@ -129,25 +134,38 @@ class _ReportesWidgetState extends State<ReportesWidget>
               if (hasImage)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: kIsWeb
-                      ? Image.network(
-                          r.imagenPath!,
+                  child: (() {
+                    if (r.imagenPath!.startsWith('hive:')) {
+                      final id = r.imagenPath!.substring(5);
+                      final bytes = ImageStore.loadReportImageSync(id);
+                      if (bytes != null) {
+                        return Image.memory(bytes, width: 96, height: 96, fit: BoxFit.cover);
+                      }
+                      return Container(width: 96, height: 96, color: Colors.grey[200], child: const Icon(Icons.broken_image, size: 36, color: Colors.grey));
+                    }
+
+                    if (kIsWeb) {
+                      return Image.network(
+                        r.imagenPath!,
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
                           width: 96,
                           height: 96,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 96,
-                            height: 96,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.broken_image, size: 36, color: Colors.grey),
-                          ),
-                        )
-                      : Image.file(
-                          File(r.imagenPath!),
-                          width: 96,
-                          height: 96,
-                          fit: BoxFit.cover,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.broken_image, size: 36, color: Colors.grey),
                         ),
+                      );
+                    }
+
+                    return Image.file(
+                      File(r.imagenPath!),
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.cover,
+                    );
+                  })(),
                 )
               else
                 Container(
