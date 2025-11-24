@@ -24,6 +24,11 @@ class _ReportesWidgetState extends State<ReportesWidget>
   List<Reporte> _reportes = [];
   bool _loading = true;
 
+  bool _modoCoincidencias = false;
+  Reporte? _selPerdido;
+  Reporte? selEncontrado;
+  bool _confirmaCoincidencia = false;
+
   @override
   void initState() {
     super.initState();
@@ -73,15 +78,49 @@ class _ReportesWidgetState extends State<ReportesWidget>
       }
     })();
 
+    final bool estadoSeleccionReporte = (r.tipo == TipoObjeto.perdido && _selPerdido?.id == r.id) ||
+        (r.tipo == TipoObjeto.encontrado && selEncontrado?.id == r.id);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      shape: estadoSeleccionReporte
+          ? RoundedRectangleBorder(side: BorderSide(color: Colors.blueAccent.shade700, width: 2), borderRadius: BorderRadius.circular(4))
+          : null,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r)),
-          );
-        
+          if (_modoCoincidencias) {
+            setState(() {
+              if (r.tipo == TipoObjeto.perdido) {
+                if (_selPerdido?.id == r.id) {
+                  _selPerdido = null;
+                } else {
+                  _selPerdido = r;
+                }
+              } else {
+                if (selEncontrado?.id == r.id) {
+                  selEncontrado = null;
+                } else {
+                  selEncontrado = r;
+                }
+              }
+            });
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r)),
+            );
+          }
+        },
+        onLongPress: () {
+          // Activa modo de creación de coincidencia
+          setState(() {
+            _modoCoincidencias = true;
+            if (r.tipo == TipoObjeto.perdido) {
+              _selPerdido = r;
+            } else {
+              selEncontrado = r;
+            }
+          });
         },
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -178,6 +217,14 @@ class _ReportesWidgetState extends State<ReportesWidget>
                   ],
                 ),
               ),
+              if (_modoCoincidencias)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Icon(
+                    estadoSeleccionReporte ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: estadoSeleccionReporte ? Colors.blueAccent : Colors.grey,
+                  ),
+                ),
             ],
           ),
         ),
@@ -256,15 +303,41 @@ class _ReportesWidgetState extends State<ReportesWidget>
     }
   }
 
+  Future<void> _confirmarCoincidenciaSeleccionada() async {
+    if (_selPerdido == null || selEncontrado == null) return;
+    setState(() => _confirmaCoincidencia = true);
+    try {
+      final peso = AlgoritmoCoincidencia.calcularPeso(_selPerdido!, selEncontrado!);
+      final nueva = Coincidencia(
+        reportePerdido: _selPerdido!,
+        reporteEncontrado: selEncontrado!,
+        peso: peso,
+        fechaDeteccion: DateTime.now(),
+        estado: EstadoCoincidencia.CONFIRMADA_POR_ADMIN,
+      );
+      await agregarCoincidenciaLocal(nueva);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coincidencia creada y confirmada')));
+      }
+      // reset selection and exit select mode
+      setState(() {
+        _modoCoincidencias = false;
+        _selPerdido = null;
+        selEncontrado = null;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error creando coincidencia: $e')));
+      }
+    } finally {
+      setState(() => _confirmaCoincidencia = false);
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _buildBodyContent();
   }
 
   Widget _buildBodyContent() {
@@ -351,8 +424,93 @@ class _ReportesWidgetState extends State<ReportesWidget>
       ],
     );
   }
-}
 
+  @override
+  Widget build(BuildContext context) {
+    // Widget de instrucción (pequeño, no superpuesto) colocado debajo de las listas/pestañas
+    final instruccionCoincide = !_modoCoincidencias
+        ? Material(
+            elevation: 1,
+            borderRadius: BorderRadius.circular(8),
+            color: Theme.of(context).cardColor,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Row(
+                children: const [
+                  Icon(Icons.info_outline, size: 18, color: Colors.black54),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Mantén presionado un reporte para establecer una coincidencia',
+                      style: TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        : const SizedBox.shrink();
+
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              _buildBodyContent(),
+              // controles de selección
+              if (_modoCoincidencias)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 12,
+                  child: Material(
+                    elevation: 6,
+                    borderRadius: BorderRadius.circular(8),
+                    color: Theme.of(context).cardColor,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Seleccionados: Perdido=${_selPerdido?.descripcion != null ? (_selPerdido!.descripcion.length > 30 ? _selPerdido!.descripcion.substring(0, 30) + '...' : _selPerdido!.descripcion) : '—'}  •  Encontrado=${selEncontrado?.descripcion != null ? (selEncontrado!.descripcion.length > 30 ? selEncontrado!.descripcion.substring(0, 30) + '...' : selEncontrado!.descripcion) : '—'}',
+                              style: const TextStyle(fontSize: 13),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: _confirmaCoincidencia ? null : () => setState(() {
+                              _modoCoincidencias = false;
+                              _selPerdido = null;
+                              selEncontrado = null;
+                            }),
+                            child: const Text('Cancelar'),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: (_selPerdido != null && selEncontrado != null && !_confirmaCoincidencia)
+                                ? _confirmarCoincidenciaSeleccionada
+                                : null,
+                            child: _confirmaCoincidencia ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Confirmar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          child: instruccionCoincide,
+        ),
+      ],
+    );
+  }
+}
 
 class ReportesScreen extends StatelessWidget {
   const ReportesScreen({super.key});
