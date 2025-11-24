@@ -10,12 +10,46 @@ class AlgoritmoCoincidencia {
     // artículos / determinantes
     'el', 'la', 'los', 'las', 'lo', 'un', 'una', 'unos', 'unas',
     // preposiciones / conjunciones
-    'de', 'del', 'a', 'ante', 'bajo', 'con', 'contra', 'por', 'para', 'entre', 'sin', 'sobre', 'hacia', 'hasta', 'segun',
+    'de',
+    'del',
+    'a',
+    'ante',
+    'bajo',
+    'con',
+    'contra',
+    'por',
+    'para',
+    'entre',
+    'sin',
+    'sobre',
+    'hacia',
+    'hasta',
+    'segun',
     'y', 'o', 'u', 'pero', 'porque', 'que', 'como', 'cuando', 'donde',
     // pronombres comunes
-    'yo', 'tu', 'tus', 'te', 'usted', 'ustedes', 'ella', 'ellos', 'nos', 'nosotros', 'mi', 'mis', 'su', 'sus',
+    'yo',
+    'tu',
+    'tus',
+    'te',
+    'usted',
+    'ustedes',
+    'ella',
+    'ellos',
+    'nos',
+    'nosotros',
+    'mi',
+    'mis',
+    'su',
+    'sus',
     // verbos y formas frecuentes (variantes comunes relacionadas a pérdidas/encuentros)
-    'perdi', 'perdio', 'encontre', 'encontrado', 'encontraron', 'encontramos', 'tengo', 'tenia',
+    'perdi',
+    'perdio',
+    'encontre',
+    'encontrado',
+    'encontraron',
+    'encontramos',
+    'tengo',
+    'tenia',
     // palabras de relleno / cortesía
     'hola', 'gracias', 'porfavor', 'favor', 'buenos', 'dias', 'tarde', 'noche',
     // referencias espaciales/tiempo no descriptivas
@@ -23,9 +57,16 @@ class AlgoritmoCoincidencia {
     // indicaciones de adjuntos/imagenes
     'foto', 'fotos', 'imagen', 'imagenes', 'adjunto', 'adjunta',
     // otras palabras cortas comunes que no aportan mucho
-    'muy', 'mas', 'menos', 'algo', 'algun', 'alguno', 'algunos', 'alguna', 'algunas',
-    // pronombres/reflexivos y ubicaciones comunes
-    'se', 'me', 'afuera', 'dentro'
+    'muy',
+    'mas',
+    'menos',
+    'algo',
+    'algun',
+    'alguno',
+    'algunos',
+    'alguna',
+    'algunas',
+    'se', 'me', 'afuera', 'dentro',
   }.map(_normalizar).toSet();
 
   // Umbral de similitud normalizada (Levenshtein) para considerar tokens como "match"
@@ -132,7 +173,10 @@ class AlgoritmoCoincidencia {
 
     final set1 = list1.toSet();
     final set2 = list2.toSet();
-    final unionSize = (set1.length + set2.length - matches).clamp(1, set1.length + set2.length);
+    final unionSize = (set1.length + set2.length - matches).clamp(
+      1,
+      set1.length + set2.length,
+    );
     return matches / unionSize;
   }
 
@@ -172,7 +216,10 @@ class AlgoritmoCoincidencia {
 
     final setA = palabras1.toSet();
     final setB = palabras2.toSet();
-    final unionSize = (setA.length + setB.length - matches).clamp(1, setA.length + setB.length);
+    final unionSize = (setA.length + setB.length - matches).clamp(
+      1,
+      setA.length + setB.length,
+    );
     return matches / unionSize;
   }
 
@@ -207,7 +254,8 @@ class AlgoritmoCoincidencia {
     return v[m];
   }
 
-  static int _min3(int a, int b, int c) => a < b ? (a < c ? a : c) : (b < c ? b : c);
+  static int _min3(int a, int b, int c) =>
+      a < b ? (a < c ? a : c) : (b < c ? b : c);
 
   // Contar cuántas palabras relevantes están en común en la descripción
   static int _descripcionEnComun(String a, String b) {
