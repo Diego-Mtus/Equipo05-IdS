@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:objetos_perdidos/formulario_objeto_encontrado.dart';
 import 'package:objetos_perdidos/formulario_objeto_perdido.dart';
+import 'package:objetos_perdidos/menu_reportes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,6 +73,20 @@ class HomeScreen extends StatelessWidget {
                   style: theme.textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 20),
+                // Boton temporal a falta de la seccion de inicio como encargado
+                _MenuCard(
+                  icon: Icons.report_problem_outlined,
+                  title: 'Ver reportes',
+                  color: Colors.blue.shade100,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReportesScreen()),
+                    );
+                  },
+                ),
+
                 const SizedBox(height: 32),
 
                 _MenuCard(
