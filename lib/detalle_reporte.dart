@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:objetos_perdidos/reporte.dart';
 import 'package:objetos_perdidos/image_store.dart';
 import 'dart:typed_data';
@@ -39,15 +40,16 @@ class DetalleReporteScreen extends StatelessWidget {
                   );
                 },
                 child: (() {
-                  if (reporte.imagenPath == null) return Container(
-                    height: 200,
-                    color: Colors.grey[300],
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'Sin imagen adjunta',
-                      style: TextStyle(color: Colors.black54),
-                    ),
-                  );
+                  if (reporte.imagenPath == null)
+                    return Container(
+                      height: 200,
+                      color: Colors.grey[300],
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Sin imagen adjunta',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    );
 
                   // Hive stored image
                   if (reporte.imagenPath!.startsWith('hive:')) {
@@ -88,7 +90,7 @@ class DetalleReporteScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 24),
 
             // ====== Datos del Reporte ======
             Card(
@@ -113,16 +115,13 @@ class DetalleReporteScreen extends StatelessWidget {
                     _infoRow("Descripción", reporte.descripcion),
                     const SizedBox(height: 10),
 
-                    _infoRow("Ubicación", reporte.ubicacion),
-                    const SizedBox(height: 10),
-
                     _infoRow(
                       "Fecha",
                       "${reporte.fecha.day}/${reporte.fecha.month}/${reporte.fecha.year}",
                     ),
                     const SizedBox(height: 10),
 
-                    _infoRow("Tipo", reporte.tipo.name),
+                    _infoRow("Tipo", reporte.tipo.name[0].toUpperCase() + reporte.tipo.name.substring(1)),
 
                     const SizedBox(height: 16),
 
@@ -150,7 +149,70 @@ class DetalleReporteScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 24),
+
+            // ===== Ubicación del reporte =====
+            const Text(
+              "Ubicación del reporte",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+
+            const SizedBox(height: 10),
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  height: 260,
+                  child: FlutterMap(
+                    options: MapOptions(
+                      initialCenter: reporte.coordenadas!,
+                      initialZoom: 17,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.udec.objetos_perdidos',
+                      ),
+
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: reporte.coordenadas!,
+                            width: 50,
+                            height: 50,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  color: Colors.red[700],
+                                  size: 42,
+                                ),
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red[700],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
 
             // ====== Datos del Usuario ======
             Card(
