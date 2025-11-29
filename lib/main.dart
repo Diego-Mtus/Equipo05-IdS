@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:objetos_perdidos/encargado_login.dart';
 import 'package:objetos_perdidos/formulario_objeto_encontrado.dart';
 import 'package:objetos_perdidos/formulario_objeto_perdido.dart';
-import 'package:objetos_perdidos/menu_reportes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:typed_data';
 
