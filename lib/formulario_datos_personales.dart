@@ -60,7 +60,7 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => DetalleReporteScreen(reporte: reporteCompleto),
+          builder: (context) => DetalleReporteScreen(reporte: reporteCompleto, backEnable: false),
         ),
       );
     }

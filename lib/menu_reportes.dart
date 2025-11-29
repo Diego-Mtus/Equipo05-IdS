@@ -112,7 +112,7 @@ class _ReportesWidgetState extends State<ReportesWidget>
           } else {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r)),
+              MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r, backEnable: true)),
             );
           }
         },
@@ -281,22 +281,9 @@ class _ReportesWidgetState extends State<ReportesWidget>
   void _mostrarDetalle(Reporte r) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r)),
+      MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r, backEnable: true)),
     );
   }
-
-  /*Future<void> _copiarAlPortapapeles(String texto) async {
-    try {
-      await Clipboard.setData(ClipboardData(text: texto));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copiado al portapapeles')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al copiar: $e')));
-      }
-    }
-  }*/
 
   // safe display for usuario
   String _usuarioDisplay(Reporte r) {
