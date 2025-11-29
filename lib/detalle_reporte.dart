@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:objetos_perdidos/reporte.dart';
 import 'package:objetos_perdidos/image_store.dart';
-import 'dart:typed_data';
 
 class DetalleReporteScreen extends StatelessWidget {
   final Reporte reporte;
@@ -43,7 +42,7 @@ class DetalleReporteScreen extends StatelessWidget {
                   );
                 },
                 child: (() {
-                  if (reporte.imagenPath == null)
+                  if (reporte.imagenPath == null){
                     return Container(
                       height: 200,
                       color: Colors.grey[300],
@@ -53,7 +52,7 @@ class DetalleReporteScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.black54),
                       ),
                     );
-
+                  }
                   // Hive stored image
                   if (reporte.imagenPath!.startsWith('hive:')) {
                     final id = reporte.imagenPath!.substring(5);
@@ -279,11 +278,13 @@ class DetalleReporteScreen extends StatelessWidget {
     );
   }
 
-    Future<void> _copiarAlPortapapeles(BuildContext context, String texto) async {
+  Future<void> _copiarAlPortapapeles(BuildContext context, String texto) async {
     try {
       await Clipboard.setData(ClipboardData(text: texto));
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copiado al portapapeles')));
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al copiar: $e')));
     }
   }

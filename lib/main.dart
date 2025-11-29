@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:objetos_perdidos/encargado_login.dart';
 import 'package:objetos_perdidos/formulario_objeto_encontrado.dart';
 import 'package:objetos_perdidos/formulario_objeto_perdido.dart';
-import 'package:objetos_perdidos/menu_reportes.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:typed_data';
 
@@ -83,12 +83,12 @@ class HomeScreen extends StatelessWidget {
                 // Boton temporal a falta de la seccion de inicio como encargado
                 _MenuCard(
                   icon: Icons.report_problem_outlined,
-                  title: 'Ver reportes',
+                  title: 'Iniciar sesión como encargado',
                   color: Colors.blue.shade100,
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ReportesScreen()),
+                      MaterialPageRoute(builder: (_) => const EncargadoLoginScreen()),
                     );
                   },
                 ),
