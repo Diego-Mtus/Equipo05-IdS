@@ -240,9 +240,9 @@ class DetalleReporteScreen extends StatelessWidget {
                     if (reporte.usuario != null) ...[
                       _infoRow("Nombre", reporte.usuario!.nombre),
                       const SizedBox(height: 10),
-                      _infoRow("Correo", reporte.usuario!.correo),
+                      _infoRow("Correo", reporte.usuario!.correo, context),
                       const SizedBox(height: 10),
-                      _infoRow("Matrícula", reporte.usuario!.nMatricula),
+                      _infoRow("Matrícula", reporte.usuario!.nMatricula, context),
                     ] else
                       const Text("Sin información del usuario."),
                   ],
@@ -279,22 +279,44 @@ class DetalleReporteScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String title, String value) {
-    return Column(
+    Future<void> _copiarAlPortapapeles(BuildContext context, String texto) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: texto));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copiado al portapapeles')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al copiar: $e')));
+    }
+  }
+
+  Widget _infoRow(String title, String value, [BuildContext? context]) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 15, color: Colors.black87),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 15, color: Colors.black87),
-        ),
+        if (context != null)
+          IconButton(
+            icon: const Icon(Icons.copy, size: 20),
+            tooltip: 'Copiar $title',
+            onPressed: () => _copiarAlPortapapeles(context, value),
+          ),
       ],
     );
   }
