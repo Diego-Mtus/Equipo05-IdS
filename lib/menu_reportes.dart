@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import 'package:objetos_perdidos/detalle_reporte.dart';
 import 'package:objetos_perdidos/coincidencia.dart';
 import 'package:objetos_perdidos/algoritmo_coincidencias.dart';
 import 'package:objetos_perdidos/enum_estado_coincidencia.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ReportesWidget extends StatefulWidget {
   const ReportesWidget({Key? key}) : super(key: key);
@@ -112,7 +110,7 @@ class _ReportesWidgetState extends State<ReportesWidget>
           } else {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r)),
+              MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r, backEnable: true)),
             );
           }
         },
@@ -277,49 +275,6 @@ class _ReportesWidgetState extends State<ReportesWidget>
 
   String _fechaCorta(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  void _mostrarDetalle(Reporte r) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r)),
-    );
-  }
-
-  /*Future<void> _copiarAlPortapapeles(String texto) async {
-    try {
-      await Clipboard.setData(ClipboardData(text: texto));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copiado al portapapeles')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al copiar: $e')));
-      }
-    }
-  }*/
-
-  // safe display for usuario
-  String _usuarioDisplay(Reporte r) {
-    try {
-      final u = r.usuario;
-      if (u == null) return 'Anónimo';
-      final dyn = u as dynamic;
-      if (dyn.nombre != null && dyn.nombre.toString().isNotEmpty) return dyn.nombre.toString();
-      if (dyn.email != null && dyn.email.toString().isNotEmpty) return dyn.email.toString();
-      if (dyn.correo != null && dyn.correo.toString().isNotEmpty) return dyn.correo.toString();
-      // fallback to toJson map
-      try {
-        final map = dyn.toJson();
-        if (map is Map) {
-          final candidate = map['nombre'] ?? map['email'] ?? map['correo'] ?? map['username'];
-          if (candidate != null) return candidate.toString();
-        }
-      } catch (_) {}
-      return 'Anónimo';
-    } catch (_) {
-      return 'Anónimo';
-    }
-  }
 
   Future<void> _confirmarCoincidenciaSeleccionada() async {
     if (_selPerdido == null || selEncontrado == null) return;
