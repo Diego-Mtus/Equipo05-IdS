@@ -33,20 +33,23 @@ class InputValidator {
   }
 
 
-  // Validar Matrícula
-  static String? validateMatricula(String? value) {
+   // Validar Teléfono
+  static String? validateTelefono(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Ingrese su número de matrícula';
+      return 'Ingrese su número de teléfono';
     }
-    // Verificamos que SOLO contenga números
+
+    // Solo números
     final numberRegExp = RegExp(r'^\d+$');
-    if (!numberRegExp.hasMatch(value)) {
-      return 'La matrícula debe contener solo números';
+    if (!numberRegExp.hasMatch(value.trim())) {
+      return 'El número de teléfono debe contener solo números';
     }
-    // Verificamos longitud exacta
-    if (value.trim().length != 10) {
-      return 'La matrícula debe tener 10 dígitos';
+
+    // Ejemplo: 9 dígitos (ajusta si quieres otra longitud)
+    if (value.trim().length != 9) {
+      return 'El número de teléfono debe tener 9 dígitos';
     }
+
     return null;
   }
 }

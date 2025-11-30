@@ -19,7 +19,7 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _correoController = TextEditingController();
-  final _matriculaController = TextEditingController();
+  final _telefonoController = TextEditingController();
 
   // Función para finalizar reporte
   Future<void> _finalizarReporte() async {
@@ -36,7 +36,7 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
     final usuario = Usuario(
       nombre: _nombreController.text.trim(),
       correo: _correoController.text.trim(),
-      nMatricula: _matriculaController.text.trim(),
+      telefono: _telefonoController.text.trim(),
     );
 
     // Asignar usuario al reporte parcial
@@ -144,7 +144,7 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
 
               // ===== MATRÍCULA =====
               Text(
-                "Número de matrícula *",
+                "Número de teléfono *",
                 style: TextStyle(
                   color: Colors.grey[700],
                   fontWeight: FontWeight.w600,
@@ -152,21 +152,21 @@ class _FormularioDatosPersonalesState extends State<FormularioDatosPersonales> {
               ),
               const SizedBox(height: 6),
               TextFormField(
-                controller: _matriculaController,
-                keyboardType: TextInputType.number,
-                maxLength: 10,
+                controller: _telefonoController,
+                keyboardType: TextInputType.phone,
+                maxLength: 9,
                 decoration: InputDecoration(
-                  hintText: "Ej: 2023123456",
+                  hintText: "Ej: 912345678",
                   filled: true,
                   fillColor: Colors.grey[100],
                   counterText: "",
-                  prefixIcon: const Icon(Icons.badge),
+                  prefixIcon: const Icon(Icons.phone),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: InputValidator.validateMatricula,
+                validator: InputValidator.validateTelefono,
               ),
 
               const SizedBox(height: 30),

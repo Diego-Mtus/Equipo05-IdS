@@ -241,7 +241,7 @@ class DetalleReporteScreen extends StatelessWidget {
                       const SizedBox(height: 10),
                       _infoRow("Correo", reporte.usuario!.correo, context),
                       const SizedBox(height: 10),
-                      _infoRow("Matrícula", reporte.usuario!.nMatricula, context),
+                      _infoRow("Teléfono", reporte.usuario!.telefono, context),
                     ] else
                       const Text("Sin información del usuario."),
                   ],
