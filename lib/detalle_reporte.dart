@@ -11,6 +11,25 @@ String _capitalize(String s) {
   return s[0].toUpperCase() + s.substring(1);
 }
 
+bool _hasImageForReport(Reporte reporte) {
+  final String? path = reporte.imagenPath;
+  if (path == null || path.isEmpty) return false;
+  if (path.startsWith('hive:')) {
+    final id = path.substring(5);
+    return ImageStore.hasImageSync(id);
+  }
+  return kIsWeb || File(path).existsSync();
+}
+
+Color _colorForReporte(Reporte reporte) {
+  try {
+    final name = reporte.tipo.name;
+    if (name == 'perdido') return Colors.red.shade600;
+    if (name == 'encontrado') return Colors.green.shade600;
+  } catch (_) {}
+  return Colors.blueGrey;
+}
+
 class DetalleReporteScreen extends StatelessWidget {
   final Reporte reporte;
   final bool backEnable;
@@ -188,29 +207,66 @@ class DetalleReporteScreen extends StatelessWidget {
 
                       MarkerLayer(
                         markers: [
-                          Marker(
-                            point: reporte.coordenadas!,
-                            width: 50,
-                            height: 50,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.location_on_rounded,
-                                  color: Colors.red[700],
-                                  size: 42,
+                              Marker(
+                                point: reporte.coordenadas!,
+                                width: 56,
+                                height: 56,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.location_on_rounded,
+                                          color: Colors.red[700],
+                                          size: 42,
+                                        ),
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: Colors.red[700],
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (_hasImageForReport(reporte))
+                                      Positioned(
+                                        right: 12,
+                                        top: 6,
+                                        child: Container(
+                                          width: 32,
+                                          height: 32,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: _colorForReporte(reporte), width: 2),
+                                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 2)],
+                                          ),
+                                          child: ClipOval(
+                                            child: (() {
+                                              final path = reporte.imagenPath!;
+                                              if (path.startsWith('hive:')) {
+                                                final id = path.substring(5);
+                                                final bytes = ImageStore.loadReportImageSync(id);
+                                                if (bytes != null) {
+                                                  return Image.memory(bytes, width: 32, height: 32, fit: BoxFit.cover);
+                                                }
+                                                return Container(color: Colors.grey[200]);
+                                              }
+                                        
+                                              return kIsWeb
+                                                  ? Image.network(path, width: 32, height: 32, fit: BoxFit.cover)
+                                                  : Image.file(File(path), width: 32, height: 32, fit: BoxFit.cover);
+                                            })(),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: Colors.red[700],
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
                         ],
                       ),
                     ],
