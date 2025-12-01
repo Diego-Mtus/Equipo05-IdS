@@ -57,6 +57,18 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(''),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Iniciar sesión',
+            icon: const Icon(Icons.admin_panel_settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EncargadoLoginScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -80,18 +92,7 @@ class HomeScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                // Boton temporal a falta de la seccion de inicio como encargado
-                _MenuCard(
-                  icon: Icons.report_problem_outlined,
-                  title: 'Iniciar sesión como encargado',
-                  color: Colors.blue.shade100,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const EncargadoLoginScreen()),
-                    );
-                  },
-                ),
+
 
                 const SizedBox(height: 32),
 
