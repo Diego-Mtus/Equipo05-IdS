@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:objetos_perdidos/menu_reportes.dart';
+import 'package:objetos_perdidos/menu_coincidencias.dart';
 
 class EncargadoLoginScreen extends StatefulWidget {
   const EncargadoLoginScreen({super.key});
@@ -77,7 +78,7 @@ class _EncargadoLoginScreenState extends State<EncargadoLoginScreen> {
                           Navigator.push(
                             context,
                             // Reemplazar con la pantalla de coincidencias cuando esté disponible
-                            MaterialPageRoute(builder: (_) => const ReportesScreen()),
+                            MaterialPageRoute(builder: (_) => const CoincidenciasScreen()),
                           );
                         },
                       ),

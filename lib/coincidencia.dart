@@ -62,7 +62,25 @@ Future<void> agregarCoincidenciaLocal(Coincidencia nueva) async {
   await _guardarCoincidenciasLocal(coincidencias);
 }
 
+Future<void> actualizarCoincidenciaLocal(Coincidencia actualizada) async {
+  final coincidencias = await obtenerCoincidenciasLocales();
+  final index = coincidencias.indexWhere((c) => c.idUnico == actualizada.idUnico);
+  if (index == -1) {
+    // si no existe, añadimos
+    coincidencias.add(actualizada);
+  } else {
+    coincidencias[index] = actualizada;
+  }
+  await _guardarCoincidenciasLocal(coincidencias);
+}
+
 Future<void> eliminarTodasLasCoincidencias() async {
   final local = await SharedPreferences.getInstance();
   await local.remove('coincidencias');
+}
+
+Future<void> eliminarCoincidenciaLocal(String idUnico) async {
+  final coincidencias = await obtenerCoincidenciasLocales();
+  coincidencias.removeWhere((c) => c.idUnico == idUnico);
+  await _guardarCoincidenciasLocal(coincidencias);
 }

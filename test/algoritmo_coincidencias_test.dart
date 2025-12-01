@@ -24,7 +24,7 @@ Reporte _crear({
     usuario: Usuario(
       nombre: "Test",
       correo: "test@udec.cl",
-      nMatricula: '2023123123',
+      telefono: '993235532',
     ),
     coordenadas: LatLng(lat, lon),
   );

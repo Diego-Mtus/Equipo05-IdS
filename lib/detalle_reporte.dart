@@ -6,6 +6,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:objetos_perdidos/reporte.dart';
 import 'package:objetos_perdidos/image_store.dart';
 
+String _capitalize(String s) {
+  if (s.isEmpty) return s;
+  return s[0].toUpperCase() + s.substring(1);
+}
+
 class DetalleReporteScreen extends StatelessWidget {
   final Reporte reporte;
   final bool backEnable;
@@ -114,7 +119,7 @@ class DetalleReporteScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    _infoRow("Descripción", reporte.descripcion),
+                    _infoRow("Descripción", _capitalize(reporte.descripcion)),
                     const SizedBox(height: 10),
 
                     _infoRow(
