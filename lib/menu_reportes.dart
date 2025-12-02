@@ -11,7 +11,12 @@ import 'package:objetos_perdidos/algoritmo_coincidencias.dart';
 import 'package:objetos_perdidos/enum_estado_coincidencia.dart';
 
 class ReportesWidget extends StatefulWidget {
-  const ReportesWidget({Key? key}) : super(key: key);
+  final bool isEncargado;
+
+  const ReportesWidget({
+    Key? key,
+    this.isEncargado = false,
+  }) : super(key: key);
 
   @override
   State<ReportesWidget> createState() => _ReportesWidgetState();
@@ -22,7 +27,7 @@ class _ReportesWidgetState extends State<ReportesWidget>
   late final TabController _tabController;
   List<Reporte> _reportes = [];
   bool _loading = true;
-
+  bool get _esEncargado => widget.isEncargado;
   bool _modoCoincidencias = false;
   Reporte? _selPerdido;
   Reporte? selEncontrado;
@@ -54,13 +59,61 @@ class _ReportesWidgetState extends State<ReportesWidget>
         _loading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error leyendo reportes: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error leyendo reportes: $e')),
+        );
       }
     }
   }
 
   bool _esPerdido(Reporte r) => r.tipo == TipoObjeto.perdido;
   bool _esEncontrado(Reporte r) => r.tipo == TipoObjeto.encontrado;
+
+  Future<void> _confirmarEliminarReporte(Reporte r) async {
+    final bool? confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar reporte'),
+        content: const Text(
+          '¿Seguro que deseas eliminar este reporte? '
+          'Esta accion no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      try {
+        await eliminarReporteLocal(r.id);
+        setState(() {
+          _reportes.removeWhere((rep) => rep.id == r.id);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Reporte eliminado correctamente')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al eliminar el reporte: $e')),
+          );
+        }
+      }
+    }
+  }
 
   Widget _buildListTile(Reporte r) {
     // Evitar el uso de APIs relacionadas con archivos en web
@@ -81,13 +134,18 @@ class _ReportesWidgetState extends State<ReportesWidget>
       }
     })();
 
-    final bool estadoSeleccionReporte = (r.tipo == TipoObjeto.perdido && _selPerdido?.id == r.id) ||
-        (r.tipo == TipoObjeto.encontrado && selEncontrado?.id == r.id);
+    final bool estadoSeleccionReporte =
+        (r.tipo == TipoObjeto.perdido && _selPerdido?.id == r.id) ||
+            (r.tipo == TipoObjeto.encontrado && selEncontrado?.id == r.id);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       shape: estadoSeleccionReporte
-          ? RoundedRectangleBorder(side: BorderSide(color: Colors.blueAccent.shade700, width: 2), borderRadius: BorderRadius.circular(4))
+          ? RoundedRectangleBorder(
+              side: BorderSide(
+                  color: Colors.blueAccent.shade700, width: 2),
+              borderRadius: BorderRadius.circular(4),
+            )
           : null,
       child: InkWell(
         onTap: () {
@@ -110,7 +168,10 @@ class _ReportesWidgetState extends State<ReportesWidget>
           } else {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => DetalleReporteScreen(reporte: r, backEnable: true)),
+              MaterialPageRoute(
+                builder: (_) =>
+                    DetalleReporteScreen(reporte: r, backEnable: true),
+              ),
             );
           }
         },
@@ -135,11 +196,26 @@ class _ReportesWidgetState extends State<ReportesWidget>
                   child: (() {
                     if (r.imagenPath!.startsWith('hive:')) {
                       final id = r.imagenPath!.substring(5);
-                      final bytes = ImageStore.loadReportImageSync(id);
+                      final bytes =
+                          ImageStore.loadReportImageSync(id);
                       if (bytes != null) {
-                        return Image.memory(bytes, width: 96, height: 96, fit: BoxFit.cover);
+                        return Image.memory(
+                          bytes,
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                        );
                       }
-                      return Container(width: 96, height: 96, color: Colors.grey[200], child: const Icon(Icons.broken_image, size: 36, color: Colors.grey));
+                      return Container(
+                        width: 96,
+                        height: 96,
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.broken_image,
+                          size: 36,
+                          color: Colors.grey,
+                        ),
+                      );
                     }
 
                     if (kIsWeb) {
@@ -152,7 +228,11 @@ class _ReportesWidgetState extends State<ReportesWidget>
                           width: 96,
                           height: 96,
                           color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image, size: 36, color: Colors.grey),
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 36,
+                            color: Colors.grey,
+                          ),
                         ),
                       );
                     }
@@ -173,28 +253,45 @@ class _ReportesWidgetState extends State<ReportesWidget>
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.photo, size: 40, color: Colors.grey),
+                  child: const Icon(
+                    Icons.photo,
+                    size: 40,
+                    color: Colors.grey,
+                  ),
                 ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       r.descripcion,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.place, size: 14, color: Colors.grey),
+                        const Icon(
+                          Icons.place,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            r.ubicacion.isNotEmpty ? r.ubicacion : 'Ubicación no disponible',
-                            style: const TextStyle(fontSize: 13, color: Colors.black87),
+                            r.ubicacion.isNotEmpty
+                                ? r.ubicacion
+                                : 'Ubicación no disponible',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -210,10 +307,19 @@ class _ReportesWidgetState extends State<ReportesWidget>
                         runSpacing: 4,
                         children: r.tags.map((t) {
                           return Chip(
-                            label: Text(t, style: const TextStyle(fontSize: 12)),
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            backgroundColor: Colors.blue.shade50,
+                            label: Text(
+                              t,
+                              style: const TextStyle(
+                                fontSize: 12,
+                              ),
+                            ),
+                            visualDensity:
+                                VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize
+                                    .shrinkWrap,
+                            backgroundColor:
+                                Colors.blue.shade50,
                           );
                         }).toList(),
                       ),
@@ -222,11 +328,18 @@ class _ReportesWidgetState extends State<ReportesWidget>
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           _fechaCorta(r.fecha),
-                          style: const TextStyle(fontSize: 13, color: Colors.black54),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
@@ -235,11 +348,24 @@ class _ReportesWidgetState extends State<ReportesWidget>
               ),
               if (_modoCoincidencias)
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                  padding:
+                      const EdgeInsets.only(left: 8.0),
                   child: Icon(
-                    estadoSeleccionReporte ? Icons.check_circle : Icons.radio_button_unchecked,
-                    color: estadoSeleccionReporte ? Colors.blueAccent : Colors.grey,
+                    estadoSeleccionReporte
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: estadoSeleccionReporte
+                        ? Colors.blueAccent
+                        : Colors.grey,
                   ),
+                )
+              else if (_esEncargado)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  color: Colors.redAccent,
+                  tooltip: 'Eliminar reporte',
+                  onPressed: () =>
+                      _confirmarEliminarReporte(r),
                 ),
             ],
           ),
@@ -249,7 +375,9 @@ class _ReportesWidgetState extends State<ReportesWidget>
   }
 
   Widget _buildList(List<Reporte> items) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     if (items.isEmpty) {
       return Center(
         child: Column(
@@ -269,7 +397,8 @@ class _ReportesWidgetState extends State<ReportesWidget>
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: items.length,
-      itemBuilder: (context, index) => _buildListTile(items[index]),
+      itemBuilder: (context, index) =>
+          _buildListTile(items[index]),
     );
   }
 
@@ -280,7 +409,10 @@ class _ReportesWidgetState extends State<ReportesWidget>
     if (_selPerdido == null || selEncontrado == null) return;
     setState(() => _confirmaCoincidencia = true);
     try {
-      final peso = AlgoritmoCoincidencia.calcularPeso(_selPerdido!, selEncontrado!);
+      final peso = AlgoritmoCoincidencia.calcularPeso(
+        _selPerdido!,
+        selEncontrado!,
+      );
       final nueva = Coincidencia(
         reportePerdido: _selPerdido!,
         reporteEncontrado: selEncontrado!,
@@ -290,7 +422,12 @@ class _ReportesWidgetState extends State<ReportesWidget>
       );
       await agregarCoincidenciaLocal(nueva);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coincidencia creada y confirmada')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Coincidencia creada y confirmada'),
+          ),
+        );
       }
       // reset selection and exit select mode
       setState(() {
@@ -300,7 +437,12 @@ class _ReportesWidgetState extends State<ReportesWidget>
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error creando coincidencia: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Error creando coincidencia: $e'),
+          ),
+        );
       }
     } finally {
       setState(() => _confirmaCoincidencia = false);
@@ -315,10 +457,12 @@ class _ReportesWidgetState extends State<ReportesWidget>
 
   Widget _buildBodyContent() {
     final perdidos = _reportes.where(_esPerdido).toList();
-    final encontrados = _reportes.where(_esEncontrado).toList();
+    final encontrados =
+        _reportes.where(_esEncontrado).toList();
 
     final mq = MediaQuery.of(context);
-    final bool isWide = mq.size.width >= 800 || mq.orientation == Orientation.landscape;
+    final bool isWide = mq.size.width >= 800 ||
+        mq.orientation == Orientation.landscape;
 
     if (isWide) {
       // mostrar ambas listas lado a lado
@@ -329,19 +473,39 @@ class _ReportesWidgetState extends State<ReportesWidget>
               children: [
                 Container(
                   color: Theme.of(context).cardColor,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.sentiment_dissatisfied),
+                      const Icon(
+                          Icons.sentiment_dissatisfied),
                       const SizedBox(width: 8),
-                      const Text('Perdidos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Perdidos',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const Spacer(),
-                      if (!_loading) Text('${perdidos.length}', style: const TextStyle(color: Colors.black54)),
+                      if (!_loading)
+                        Text(
+                          '${perdidos.length}',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                          ),
+                        ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: RefreshIndicator(onRefresh: _loadReportes, child: _buildList(perdidos)),
+                  child: RefreshIndicator(
+                    onRefresh: _loadReportes,
+                    child: _buildList(perdidos),
+                  ),
                 ),
               ],
             ),
@@ -352,19 +516,39 @@ class _ReportesWidgetState extends State<ReportesWidget>
               children: [
                 Container(
                   color: Theme.of(context).cardColor,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle_outline),
+                      const Icon(
+                          Icons.check_circle_outline),
                       const SizedBox(width: 8),
-                      const Text('Encontrados', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Encontrados',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const Spacer(),
-                      if (!_loading) Text('${encontrados.length}', style: const TextStyle(color: Colors.black54)),
+                      if (!_loading)
+                        Text(
+                          '${encontrados.length}',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                          ),
+                        ),
                     ],
                   ),
                 ),
                 Expanded(
-                  child: RefreshIndicator(onRefresh: _loadReportes, child: _buildList(encontrados)),
+                  child: RefreshIndicator(
+                    onRefresh: _loadReportes,
+                    child: _buildList(encontrados),
+                  ),
                 ),
               ],
             ),
@@ -380,7 +564,10 @@ class _ReportesWidgetState extends State<ReportesWidget>
           color: Theme.of(context).cardColor,
           child: TabBar(
             controller: _tabController,
-            tabs: const [Tab(text: 'Perdidos'), Tab(text: 'Encontrados')],
+            tabs: const [
+              Tab(text: 'Perdidos'),
+              Tab(text: 'Encontrados'),
+            ],
             labelColor: Theme.of(context).primaryColor,
             unselectedLabelColor: Colors.grey,
           ),
@@ -389,8 +576,14 @@ class _ReportesWidgetState extends State<ReportesWidget>
           child: TabBarView(
             controller: _tabController,
             children: [
-              RefreshIndicator(onRefresh: _loadReportes, child: _buildList(perdidos)),
-              RefreshIndicator(onRefresh: _loadReportes, child: _buildList(encontrados)),
+              RefreshIndicator(
+                onRefresh: _loadReportes,
+                child: _buildList(perdidos),
+              ),
+              RefreshIndicator(
+                onRefresh: _loadReportes,
+                child: _buildList(encontrados),
+              ),
             ],
           ),
         ),
@@ -406,16 +599,26 @@ class _ReportesWidgetState extends State<ReportesWidget>
             elevation: 1,
             borderRadius: BorderRadius.circular(8),
             color: Theme.of(context).cardColor,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 8.0,
+              ),
               child: Row(
-                children: const [
-                  Icon(Icons.info_outline, size: 18, color: Colors.black54),
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Colors.black54,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Mantén presionado un reporte para establecer una coincidencia',
-                      style: TextStyle(fontSize: 13, color: Colors.black87),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                 ],
@@ -438,35 +641,58 @@ class _ReportesWidgetState extends State<ReportesWidget>
                   bottom: 12,
                   child: Material(
                     elevation: 6,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius:
+                        BorderRadius.circular(8),
                     color: Theme.of(context).cardColor,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding:
+                          const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               'Seleccionados: Perdido=${_selPerdido?.descripcion != null ? (_selPerdido!.descripcion.length > 30 ? _selPerdido!.descripcion.substring(0, 30) + '...' : _selPerdido!.descripcion) : '—'}  •  Encontrado=${selEncontrado?.descripcion != null ? (selEncontrado!.descripcion.length > 30 ? selEncontrado!.descripcion.substring(0, 30) + '...' : selEncontrado!.descripcion) : '—'}',
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(
+                                fontSize: 13,
+                              ),
                               maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              overflow:
+                                  TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
                           TextButton(
-                            onPressed: _confirmaCoincidencia ? null : () => setState(() {
-                              _modoCoincidencias = false;
-                              _selPerdido = null;
-                              selEncontrado = null;
-                            }),
+                            onPressed: _confirmaCoincidencia
+                                ? null
+                                : () => setState(() {
+                                      _modoCoincidencias =
+                                          false;
+                                      _selPerdido = null;
+                                      selEncontrado = null;
+                                    }),
                             child: const Text('Cancelar'),
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
-                            onPressed: (_selPerdido != null && selEncontrado != null && !_confirmaCoincidencia)
+                            onPressed: (_selPerdido != null &&
+                                        selEncontrado !=
+                                            null &&
+                                        !_confirmaCoincidencia)
                                 ? _confirmarCoincidenciaSeleccionada
                                 : null,
-                            child: _confirmaCoincidencia ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Confirmar'),
+                            child: _confirmaCoincidencia
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child:
+                                        CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Confirmar'),
                           ),
                         ],
                       ),
@@ -477,7 +703,12 @@ class _ReportesWidgetState extends State<ReportesWidget>
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          padding: const EdgeInsets.fromLTRB(
+            12,
+            8,
+            12,
+            12,
+          ),
           child: instruccionCoincide,
         ),
       ],
@@ -486,16 +717,22 @@ class _ReportesWidgetState extends State<ReportesWidget>
 }
 
 class ReportesScreen extends StatelessWidget {
-  const ReportesScreen({super.key});
+  final bool isEncargado;
+
+  const ReportesScreen({
+    super.key,
+    this.isEncargado = false,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reportes'),
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(12.0),
-        child: ReportesWidget(),
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: ReportesWidget(isEncargado: isEncargado),
       ),
     );
   }

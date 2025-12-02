@@ -63,7 +63,7 @@ class _EncargadoLoginScreenState extends State<EncargadoLoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ReportesScreen()),
+                            MaterialPageRoute(builder: (_) => const ReportesScreen(isEncargado: true,)),
                           );
                         },
                       ),
